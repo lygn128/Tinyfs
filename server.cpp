@@ -15,10 +15,84 @@
 #include <unistd.h>
 #include "Event.h"
 #include <errno.h>
+#include <execinfo.h>
 #include "utils.h"
+#include "Packet.h"
+#include "signal.h"
+
+#ifndef __USE_GNU
+#define __USE_GNU
+	#include <ucontext.h>
+	#include <sys/ucontext.h>
+	#undef __USE_GNU
+#else
+#include <ucontext.h>
+#include <sys/ucontext.h>
+#endif
+
+
+static NimbleStore *globalStore = NULL;
+
+
+int readHandler(Connection * connection) {
+    Packet * packet = new Packet();
+    int num = packet->readPacket(connection);
+    if(packet->ready){
+        switch (packet->opcode) {
+            case nodeWrite:{
+                //packet->dataArry[0] = (void*)malloc(packet->size);
+                globalStore->Write(0,packet->dataArry[0],packet->size);
+                break;
+            }
+        }
+    }
+    return num;
+
+}
+
+void HandleSignal(int signum,siginfo_t * info,void * ptr) {
+    printf("catch a signal");
+//    static int iTime;
+//    if (iTime++ >= 1){ /* 容错处理：如果访问 ucontext_t 结构体时产生错误会进入该分支 */
+//        printf("ReEnter %s is not allowed!\n", __FUNCTION__);
+//        abort();
+//    }
+//
+//    void * array[25];
+//    int nSize = backtrace(array, sizeof(array)/sizeof(array[0]));
+//    int i;
+//    for (i=nSize-3; i>2; i--){ /* 头尾几个地址不必输出 */
+//        /* 对array修正一下，使地址指向正在执行的代码 */
+//        printf("signal[%d] catched when running code at %x\n", signum, (int)array[i] - 1);
+//    }
+//
+//    if (NULL != ptr){
+//        ucontext_t* ptrUC = (ucontext_t*)ptr;
+//        int *pgregs = (int*)(&(ptrUC->uc_mcontext.gregs));
+//        int eip = pgregs[REG_EIP];
+//        if (eip != (int)array[i]){ /* 有的处理器会将出错时的 EIP 入栈 */
+//            printf("signal[%d] catched when running code at %x\n", signum, (int)array[i] - 1);
+//        }
+//        printf("signal[%d] catched when running code at %x\n", signum, eip); /* 出错时的指令地址 */
+//    }else{
+//        printf("signal[%d] catched when running code at unknown address\n", signum);
+//    }
 
 
 
+    abort();
+}
+
+void signProcess() {
+    struct sigaction act;
+    int sig = SIGSEGV;
+    sigemptyset(&act.sa_mask);
+    act.sa_sigaction = HandleSignal;
+    act.sa_flags = SA_SIGINFO;
+    if(sigaction(sig,&act,NULL) < 0) {
+        perror("sigaction:");
+    }
+}
 
 int server::handleConnect(Connection * connection) {
     connection->display();
@@ -26,7 +100,9 @@ int server::handleConnect(Connection * connection) {
     delete(connection);
 }
 int server::Start() {
+    //signProcess();
     store = new NimbleStore(dataDir.buff);
+    globalStore = store;
 //    char buff[64 * 1024];
 //    for(int j = 0;j < 200;j++){
 //        for(int i = 0;i< CHUNKNUM;i++) {
@@ -73,7 +149,9 @@ int server::listenAndserve() {
     }
 
     int epollfd = epoll_create1(0);
-    int add = EventProcess(epollfd,sfd,EPOLL_CTL_ADD,EPOLLET | EPOLLIN);
+    printf("epofd = %d\n",epollfd);
+    Connection * sfdConnect = new Connection(sfd,NULL);
+    int add = EventProcess(epollfd,sfd,EPOLL_CTL_ADD,EPOLLET|EPOLLIN|EPOLLOUT,sfdConnect);
     if(add < 0) {
         printError(errno,__LINE__);
         exit(-1);
@@ -82,21 +160,38 @@ int server::listenAndserve() {
     int subfd = 0;
     struct sockaddr_in remoteaddr;
     socklen_t len;
-    struct epoll_event *events = (struct epoll_event*)malloc(sizeof(struct epoll_event) * MAXEVENTS);
-    int num = 0,index = 0,aFd;
+    struct epoll_event *eventArry = (struct epoll_event*)malloc(sizeof(struct epoll_event) * MAXEVENTS);
+    int num = 0,index = 0;
     while(true) {
-        num = epoll_wait(epollfd,events,MAXEVENTS,-1);
+        bzero(eventArry,sizeof(struct epoll_event) * MAXEVENTS);
+        num = epoll_wait(epollfd,eventArry,MAXEVENTS,-1);
         printf("num = %d\n",num);
         for(index = 0;index < num; index++) {
-            aFd = events[index].data.fd;
-            printf("afd %d sfd %d\n",aFd,sfd);
+            Connection * context = (Connection*)eventArry[index].data.ptr;
+            int aFd   = context->fd;
+            int subfd = -1;
+            printf("afd %d sfd %d  evets %d\n",aFd,sfd,eventArry[index].events);
             if(aFd == sfd) {
                while((subfd = accept(sfd,(struct sockaddr*)&remoteaddr,&len)) > 0){
-                   EventProcess(epollfd,subfd,EPOLL_CTL_ADD,EPOLLET|EPOLLIN);
+
                    Connection * connection = new Connection(subfd,&remoteaddr);
-                   handleConnect(connection);
+                   //printf("172 addr %x\n",connection);
+                   EventProcess(epollfd,subfd,EPOLL_CTL_ADD,EPOLLET|EPOLLIN,connection);
+                   //handleConnect(connection);
+                   connection->readHandler = &readHandler;
                }
             }else {
+                Connection * connection = (Connection*)eventArry[index].data.ptr;
+                //printf("179 addr %x\n",connection);
+                if(eventArry[index].events & EPOLLIN) {
+                    if(connection->readHandler != NULL){
+                        int x = connection->readHandler(connection);
+                        if(x == 0) {
+                            EventProcess(epollfd,aFd,EPOLL_CTL_DEL,0,NULL);
+                        }
+                    }
+
+                }
 
             }
         }

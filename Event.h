@@ -9,4 +9,4 @@
 
 
 
-int EventProcess(int epollfd,int fd,int op,int events);
+int EventProcess(int epollfd,int fd,int op,int events,void *aptr);

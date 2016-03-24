@@ -9,12 +9,17 @@
 
 
 class Connection {
+public:
     int fd;
     struct sockaddr_in maddr;
 public:
     int Close();
+    int (*readHandler)(Connection * connection);
+    int (*writeHandler)();
     Connection(int fd,struct sockaddr_in * addr);
     void display();
+    Connection();
+    int TFconnect(char *addr, int port);
 //    int (*conRead)();
 //    int (*)
 };
