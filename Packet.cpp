@@ -9,6 +9,20 @@
 Packet::Packet() {
     offset = 0;
 }
+
+Data* Packet::marshal() {
+    int lenght = 15;
+    for(int i = 0;i< 4;i++) {
+        lenght += parLen[i];
+    }
+    lenght += size;
+    Data * data = (Data*)malloc(sizeof(Data) + lenght);
+    data->buff  = (char *)data +  sizeof(Data);
+    data->length = lenght;
+}
+int Packet::writePacket(Connection *connection) {
+
+}
 int Packet::readPacket(Connection * connection) {
     void * xx = this;
     int num =  read(connection->fd,this + readOffset,11);

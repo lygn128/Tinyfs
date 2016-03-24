@@ -6,6 +6,12 @@
 #define TFNODE_PACKET_H
 
 
+typedef struct xxxx {
+    int length;
+    char  * buff;
+}Data;
+
+
 #include <sys/types.h>
 #include "Connection.h"
 
@@ -22,6 +28,8 @@ public:
     bool ready;
 public:
     int readPacket(Connection * connection);
+    int writePacket(Connection * connection);
+    Data* marshal();
     Packet();
 };
 
