@@ -34,12 +34,11 @@ sds sds::sdtrim(const char *cset) {
     while(sp <= end && strchr(cset,*sp)) sp++;
     while(end > start && strchr(cset,*end)) end--;;
     int len = (sp > end)?0:end - sp + 1;
-    if(buff != sp) memcpy(buff,sp,len);
+    if(buff != sp) memmove(buff,sp,len);
     buff[len] = '\0';
     free = free + this->len - len;
     this->len = len;
     return *this;
-
 }
 
 
