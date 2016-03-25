@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "Global.h"
 #include "LittleEndian.h"
+#include <cstdio>
 
 Packet::Packet() {
     parCount = 0;
@@ -77,28 +78,29 @@ void* Packet::Marshal() {
 //void    *dataArry;
 //int      readOffset;
 //bool     ready;
+
+int Packet::readHeader(Connection *connection) {
+    int n = connection->ReadBytes((Byte*)&magic,HEADERLEN);
+    chunkid = LittleEndian::Uint32((Byte*)&chunkid);
+    offset  = LittleEndian::Uint64((Byte*)&offset);
+    size    = LittleEndian::Uint64((Byte*)&size);
+    parCount= LittleEndian::Uint64((Byte*)&parCount);
+    for(int i = 0;i < parCount;i++) {
+        parLen[i] = LittleEndian::Uint32((Byte*)parLen +i);
+    }
+}
+
+int Packet::readBody(Connection *connection) {
+    int num = size;
+    for(int i = 0;i< parCount;i++){
+        num += parLen[i];
+    }
+    int n = connection->ReadBytes((Byte*)&dataArry,num);
+}
+
 int Packet::readPacket(Connection * connection) {
-    void * xx = this;
-    void * temp = this;
-
-    int n = connection->ReadBytes(xx,HEADERLEN);
-
-    int num =  read(connection->fd,this + readOffset,11);
-    if(readOffset >= 11){
-        chunkid = ntohl(chunkid);
-        offset  = ntohl(offset);
-        size    = ntohl(size);
-
-    }
-    readOffset += num;
-
-    if(readOffset >= 11) {
-        dataArry[0] = (void*)malloc(size);
-        num  = read(connection->fd,dataArry[0],size);
-        if(num == -1)return num;
-        if(readOffset + num == 11 + size){
-            ready = true;
-        }
-    }
-    return num;
+    int headlength = readHeader(connection);
+    printf("read header %d\n",headlength);
+    int body       = readBody(connection);
+    printf("read body %d\n",body);
 }

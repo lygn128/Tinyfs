@@ -33,6 +33,8 @@ public:
 public:
     int readPacket(Connection * connection);
     int writePacket(Connection * connection);
+    int readHeader(Connection *connection);
+    int readBody(Connection *connection);
     Packet();
     Data* marshal();
     void * Marshal();
