@@ -35,18 +35,18 @@ static NimbleStore *globalStore = NULL;
 
 
 int readHandler(Connection * connection) {
-    Packet * packet = new Packet();
-    int num = packet->readPacket(connection);
-    if(packet->ready){
-        switch (packet->opcode) {
-            case nodeWrite:{
-                //packet->dataArry[0] = (void*)malloc(packet->size);
-                globalStore->Write(0,packet->dataArry[0],packet->size);
-                break;
-            }
-        }
-    }
-    return num;
+//    Packet * packet = new Packet();
+//    int num = packet->readPacket(connection);
+//    if(packet->ready){
+//        switch (packet->opcode) {
+//            case nodeWrite:{
+//                //packet->dataArry[0] = (void*)malloc(packet->size);
+//                globalStore->Write(0,packet->dataArry[0],packet->size);
+//                break;
+//            }
+//        }
+//    }
+//    return num;
 
 }
 

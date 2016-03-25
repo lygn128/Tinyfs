@@ -7,7 +7,8 @@
 
 #define CHUNKNUM 300
 #define MAXEVENTS 10000
-#define HEADERLEN 15
+#define HEADERLEN 40
+#define PARAMAXCOUNT 4
 
 
 

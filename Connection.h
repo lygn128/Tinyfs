@@ -17,6 +17,8 @@ public:
     int (*readHandler)(Connection * connection);
     int (*writeHandler)();
     Connection(int fd,struct sockaddr_in * addr);
+    int WritBytes(void * buff,int length);
+    int ReadBytes(void * buff,size_t count);
     void display();
     Connection();
     int TFconnect(char *addr, int port);

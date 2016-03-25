@@ -14,23 +14,28 @@ typedef struct xxxx {
 
 #include <sys/types.h>
 #include "Connection.h"
+#include "Types.h"
 
 class Packet {
 public:
-    u_int8_t opcode;          //1 + 2 + 4 + 4
+    int      byteNumTosend;
+    int      readOffset;
+    uint8    magic;
+    u_int8_t opcode;          //1 + 1  + 2 + 8 + 8 + 4 + 16
     short    chunkid;
-    unsigned int  offset;
-    unsigned int  size;
+    unsigned long  offset;
+    unsigned long  size;
     int      parCount;
     int      parLen[4];
-    void    *dataArry[5];
-    int  readOffset;
-    bool ready;
+    void    *dataArry;
+
+    bool     ready;
 public:
     int readPacket(Connection * connection);
     int writePacket(Connection * connection);
-    Data* marshal();
     Packet();
+    Data* marshal();
+    void * Marshal();
 };
 
 

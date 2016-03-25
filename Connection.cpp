@@ -14,6 +14,15 @@ int Connection::Close() {
     return close(fd);
 }
 
+
+int Connection::WritBytes(void *buff, int length) {
+    return write(fd,buff,length);
+}
+
+int Connection::ReadBytes(void *buff, size_t count) {
+    return read(fd,buff,count);
+}
+
 Connection::Connection() { }
 
 
