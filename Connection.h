@@ -5,9 +5,9 @@
 #ifndef TFNODE_CONNECTION_H
 #define TFNODE_CONNECTION_H
 #include <netinet/in.h>
+#include "Packet.h"
 
-
-
+class Packet;
 class Connection {
 public:
     int fd;
@@ -22,8 +22,7 @@ public:
     void display();
     Connection();
     int TFconnect(char *addr, int port);
-//    int (*conRead)();
-//    int (*)
+    Packet *curretnPacket;
 };
 
 

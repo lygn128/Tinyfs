@@ -23,7 +23,9 @@ int Connection::ReadBytes(void *buff, size_t count) {
     return read(fd,buff,count);
 }
 
-Connection::Connection() { }
+Connection::Connection() {
+    curretnPacket = NULL;
+}
 
 
 int Connection::TFconnect(char *addr, int port) {
@@ -47,6 +49,7 @@ Connection::Connection(int xfd, struct sockaddr_in *addr) {
     readHandler = NULL;
     if(addr == NULL)
         return ;
+    curretnPacket = NULL;
     memcpy(&maddr,addr,sizeof(struct sockaddr_in));
 }
 

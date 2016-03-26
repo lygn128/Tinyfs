@@ -6,27 +6,30 @@
 
 
 void LittleEndian::PutUint16(Byte   *buff, unsigned short v) {
-    buff[0] = (Byte)(v);
-    buff[1] = (Byte)(v>>8);
+    buff[0] = buff[0]^buff[1];
+    buff[1] = buff[0]^buff[1];
+    buff[0] = buff[0]^buff[1];
+
 }
 
-void LittleEndian::PutUint32(Byte *buff, unsigned v) {
-    buff[0] = (Byte)(v);
-    buff[1] = (Byte)(v>>8);
-    buff[2] = (Byte)(v>>16);
-    buff[3] = (Byte)(v>>24);
+void LittleEndian::PutUint32(Byte *b, unsigned v) {
+    for(int i = 0;i < 2;i++) {
+        b[i] = b[i]^b[3 -i];
+        b[3-i] = b[i]^b[3 -i];
+        b[i] = b[i]^b[3 - i];
+    }
 }
 
 
-void LittleEndian::PutUint64(Byte *buff, unsigned long v) {
-    buff[0] = (Byte)(v);
-    buff[1] = (Byte)(v>>8);
-    buff[2] = (Byte)(v>>16);
-    buff[3] = (Byte)(v>>24);
-    buff[4] = (Byte)(v>>32);
-    buff[5] = (Byte)(v>>40);
-    buff[6] = (Byte)(v>>48);
-    buff[7] = (Byte)(v>>56);
+void LittleEndian::PutUint64(Byte *b, unsigned long v) {
+    b[0] = (Byte)(v);
+    b[1] = (Byte)(v>>8);
+    b[2] = (Byte)(v>>16);
+    b[3] = (Byte)(v>>24);
+    b[4] = (Byte)(v>>32);
+    b[5] = (Byte)(v>>40);
+    b[6] = (Byte)(v>>48);
+    b[7] = (Byte)(v>>56);
 }
 
 uint16 LittleEndian::Uint16(Byte *b) {

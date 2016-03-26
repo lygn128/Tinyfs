@@ -6,8 +6,6 @@
 
 using namespace std;
 
-
-
 static server *srv;
 
 config* loadconfig(char *path);

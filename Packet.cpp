@@ -15,80 +15,44 @@ Packet::Packet() {
     offset   = 0;
 }
 
-//Data* Packet::marshal() {
-//    int lenght = HEADERLEN;
-//    for(int i = 0;i< PARAMAXCOUNT;i++) {
-//        lenght += parLen[i];
-//    }
-//    lenght += size;
-//    Data * data = (Data*)malloc(sizeof(Data) + lenght);
-//    data->buff  = (char *)data +  sizeof(Data);
-//    data->length = lenght;
-//    Byte * xx = (Byte*)data->buff;
-//    xx[0] = magic;
-//    xx[1] = opcode;
-//    LittleEndian::PutUint16(xx + 2,chunkid);
-//    LittleEndian::PutUint64(xx + 4,offset);
-//    LittleEndian::PutUint64(xx + 12,size);
-//    LittleEndian::PutUint32(xx + 20,parCount);
-//    for(int i = 0;i < parCount;i++) {
-//
-//    }
-//
-//
-//
-//
-//}
 
-//uint8    magic;
-//u_int8_t opcode;          //1 + 2 + 4 + 4
-//short    chunkid;
-//unsigned long  offset;
-//unsigned long  size;
-//int      parCount;
-//int      parLen[4];
-//void    *dataArry[5];
-//int      readOffset;
-//bool     ready;
 int Packet::writePacket(Connection *connection) {
-    void * temp = this;
-    this->Marshal();
-    return connection->WritBytes(temp,byteNumTosend);
+    this -> Marshal();
+    Byte * xxx = (Byte*)this;
+    printf("write num %d \n",byteNumTosend);
+    return connection->WritBytes((Byte*)&magic, byteNumTosend);
 }
 
 void* Packet::Marshal() {
-    byteNumTosend = 40;
+    int num = (Byte*)&dataArry - (Byte*)&magic;
+    byteNumTosend = num;
     Byte * temp = (Byte*)this;
-    LittleEndian::PutUint16(temp + 2,chunkid);
-    LittleEndian::PutUint64(temp + 2 + 2 ,offset);
-    LittleEndian::PutUint64(temp + 2 + 2 + 8,size);
-    LittleEndian::PutUint32(temp + 2 + 2 + 8 + 8,parCount);
+    LittleEndian::PutUint16((Byte*)&chunkid, chunkid);
+    LittleEndian::PutUint64((Byte*)&offset , offset);
+    LittleEndian::PutUint64((Byte*)&size, size);
+    LittleEndian::PutUint32((Byte*)&parCount, parCount);
     byteNumTosend += size;
-    for(int i = 0;i< parCount;i++){
+    for(int i = 0;i < parCount; i++ ) {
         byteNumTosend += parLen[i];
     }
 }
 
-//uint8    magic;
-//u_int8_t opcode;          //1 + 1  + 2 + 8 + 8 + 4 + 16
-//short    chunkid;
-//unsigned long  offset;
-//unsigned long  size;
-//int      parCount;
-//int      parLen[4];
-//void    *dataArry;
-//int      readOffset;
-//bool     ready;
+
 
 int Packet::readHeader(Connection *connection) {
-    int n = connection->ReadBytes((Byte*)&magic,HEADERLEN);
-    chunkid = LittleEndian::Uint32((Byte*)&chunkid);
+    int len = (Byte*)&dataArry - (Byte*)&magic;
+    int n = connection->ReadBytes((Byte*)&magic,len);
+    if(n == 0) {
+        return 0;
+    }
+    chunkid = LittleEndian::Uint16((Byte*)&chunkid);
     offset  = LittleEndian::Uint64((Byte*)&offset);
     size    = LittleEndian::Uint64((Byte*)&size);
-    parCount= LittleEndian::Uint64((Byte*)&parCount);
+    parCount= LittleEndian::Uint32((Byte*)&parCount);
     for(int i = 0;i < parCount;i++) {
         parLen[i] = LittleEndian::Uint32((Byte*)parLen +i);
     }
+    return n;
 }
 
 int Packet::readBody(Connection *connection) {
@@ -96,12 +60,31 @@ int Packet::readBody(Connection *connection) {
     for(int i = 0;i< parCount;i++){
         num += parLen[i];
     }
+    byteNumTosend = size;
+    Packet ** xx = (Packet**)(&byteNumTosend);
+    *xx  = (Packet*)realloc(this,num + sizeof(Packet));
     int n = connection->ReadBytes((Byte*)&dataArry,num);
+    if(n == num){
+        finished = true;
+    }
+    return n;
 }
 
 int Packet::readPacket(Connection * connection) {
     int headlength = readHeader(connection);
     printf("read header %d\n",headlength);
+
+    if(headlength == 0) {
+        return 0;
+    }
     int body       = readBody(connection);
+//    if(headlength <40){
+//        return  0;
+//    }
+    if(body == 0) {
+        return 0;
+    }
     printf("read body %d\n",body);
+    return headlength + body;
+    printf("read body %d\n",headlength +body);
 }

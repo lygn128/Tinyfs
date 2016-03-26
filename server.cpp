@@ -35,18 +35,25 @@ static NimbleStore *globalStore = NULL;
 
 
 int readHandler(Connection * connection) {
-//    Packet * packet = new Packet();
-//    int num = packet->readPacket(connection);
-//    if(packet->ready){
-//        switch (packet->opcode) {
-//            case nodeWrite:{
-//                //packet->dataArry[0] = (void*)malloc(packet->size);
-//                globalStore->Write(0,packet->dataArry[0],packet->size);
-//                break;
-//            }
-//        }
-//    }
-//    return num;
+    if(connection->curretnPacket == NULL || connection->curretnPacket->finished == true){
+        delete connection->curretnPacket;
+        Packet * packet = new Packet();
+        connection->curretnPacket = packet;
+    }
+    Packet *xx = connection->curretnPacket;
+    int x = connection->curretnPacket->readPacket(connection);
+    if(x == 0)
+        return 0;
+    switch (connection->curretnPacket->opcode) {
+        case nodeRead:{
+            break;
+        }
+        case nodeWrite:{
+            globalStore->Write(0,(Byte*)&(xx->dataArry),xx->size);
+            break;
+        }
+    }
+    return x;
 
 }
 
@@ -176,7 +183,7 @@ int server::listenAndserve() {
 
                    Connection * connection = new Connection(subfd,&remoteaddr);
                    //printf("172 addr %x\n",connection);
-                   EventProcess(epollfd,subfd,EPOLL_CTL_ADD,EPOLLET|EPOLLIN,connection);
+                   EventProcess(epollfd,subfd,EPOLL_CTL_ADD,EPOLLET|EPOLLIN |EPOLLERR |EPOLLHUP,connection);
                    //handleConnect(connection);
                    connection->readHandler = &readHandler;
                }
@@ -188,6 +195,8 @@ int server::listenAndserve() {
                         int x = connection->readHandler(connection);
                         if(x == 0) {
                             EventProcess(epollfd,aFd,EPOLL_CTL_DEL,0,NULL);
+                            connection->Close();
+                            delete(connection);
                         }
                     }
 
