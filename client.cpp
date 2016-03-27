@@ -18,7 +18,7 @@
 int main() {
     Connection * connection = new Connection();
     char * addr =  "127.0.0.1";
-    int buffsize = 64 *1024;
+    int buffsize = 32 *1024 * 1024;
     int result = connection->TFconnect(addr, 10001);
     for(int i = 0;i< 1;i++){
         Packet *xx = (Packet*)0;
@@ -36,7 +36,7 @@ int main() {
 
 
 
-    sleep(10);
+    sleep(1);
 
 //    uint64  xx = 0x01020304;
 //    Byte *oo = (Byte*)&xx;

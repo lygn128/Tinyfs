@@ -68,19 +68,20 @@ int Packet::readBody(Connection *connection) {
             num += parLen[i];
         }
         byteNumTosend = size;
-        Packet ** xx = (Packet**)(&byteNumTosend);
+       // Packet ** xx = (Packet**)(&byteNumTosend);
         printf("realloc\n");
-        *xx  = (Packet*)realloc(this,num + sizeof(Packet));
+        connection->curretnPacket  = (Packet*)realloc(connection->curretnPacket,num + sizeof(Packet));
         printf("afteralloc\n");
     }
     int n = 0;
-    while((n = connection->ReadBytes((Byte*)&dataArry + readOffset,byteNumTosend - readOffset)) > 0) {
+    Packet *temp = connection->curretnPacket;
+    while((n = connection->ReadBytes((Byte*)&temp->dataArry + readOffset,temp->byteNumTosend - temp->readOffset)) > 0) {
         printf("read body %d\n",n);
         if(n > 0) {
-            readOffset += n;
+            temp->readOffset += n;
         }
-        if(readOffset == byteNumTosend) {
-            finished = true;
+        if(temp->readOffset == temp->byteNumTosend) {
+            temp->finished = true;
         }
     }
 
