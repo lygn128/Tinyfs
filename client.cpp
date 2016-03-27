@@ -18,11 +18,14 @@
 int main() {
     Connection * connection = new Connection();
     char * addr =  "127.0.0.1";
-    int buffsize = 32 *1024 * 1024;
+    int buffsize = 64 *1024 * 1024;
     int result = connection->TFconnect(addr, 10001);
-    for(int i = 0;i< 1;i++){
+    for(int i = 0;i < 1000;i++){
+        sleep(1);
         Packet *xx = (Packet*)0;
-        void * temp  = malloc(HEADERLEN + 200 + buffsize );
+        int n =  (Byte*)&(xx->dataArry) - (Byte*)xx + buffsize;
+        printf("n %d   index %d \n",n,i);
+        void * temp  = malloc(n);
         Packet * packet = new (temp) Packet;
         packet->magic   = 10;
         packet->opcode  = nodeWrite;
@@ -30,13 +33,14 @@ int main() {
         packet->offset  = 1;
         packet->size    = buffsize;
         packet->parCount    = 0;
-        packet->writePacket(connection);
-        //free(temp);
+        int x = packet->writePacket(connection);
+        printf("send %d   errornu %d\n",x,errno);
+        free(temp);
     }
 
 
 
-    sleep(1);
+    sleep(20);
 
 //    uint64  xx = 0x01020304;
 //    Byte *oo = (Byte*)&xx;

@@ -75,7 +75,7 @@ int Packet::readBody(Connection *connection) {
     }
     int n = 0;
     Packet *temp = connection->curretnPacket;
-    while((n = connection->ReadBytes((Byte*)&temp->dataArry + readOffset,temp->byteNumTosend - temp->readOffset)) > 0) {
+    while(temp->byteNumTosend - temp->readOffset > 0 && (n = connection->ReadBytes((Byte*)&temp->dataArry + readOffset,temp->byteNumTosend - temp->readOffset)) > 0) {
         printf("read body %d\n",n);
         if(n > 0) {
             temp->readOffset += n;
