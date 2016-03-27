@@ -18,23 +18,25 @@
 int main() {
     Connection * connection = new Connection();
     char * addr =  "127.0.0.1";
+    int buffsize = 64 *1024;
     int result = connection->TFconnect(addr, 10001);
-    for(int i = 0;i< 10000;i++){
+    for(int i = 0;i< 1;i++){
         Packet *xx = (Packet*)0;
-        void * temp  = malloc(HEADERLEN + 200 + 64 *1024);
+        void * temp  = malloc(HEADERLEN + 200 + buffsize );
         Packet * packet = new (temp) Packet;
         packet->magic   = 10;
         packet->opcode  = nodeWrite;
         packet->chunkid = 1;
         packet->offset  = 1;
-        packet->size    = 64*1024;
+        packet->size    = buffsize;
         packet->parCount    = 0;
         packet->writePacket(connection);
+        //free(temp);
     }
 
 
 
-    sleep(1);
+    sleep(10);
 
 //    uint64  xx = 0x01020304;
 //    Byte *oo = (Byte*)&xx;

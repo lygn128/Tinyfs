@@ -42,6 +42,7 @@ int readHandler(Connection * connection) {
     }
     Packet *xx = connection->curretnPacket;
     int x = connection->curretnPacket->readPacket(connection);
+    printf("has read %d\n",x);
     if(x == 0)
         return 0;
     switch (connection->curretnPacket->opcode) {
@@ -49,7 +50,7 @@ int readHandler(Connection * connection) {
             break;
         }
         case nodeWrite:{
-            globalStore->Write(0,(Byte*)&(xx->dataArry),xx->size);
+           // globalStore->Write(0,(Byte*)&(xx->dataArry),xx->size);
             break;
         }
     }
@@ -172,12 +173,11 @@ int server::listenAndserve() {
     while(true) {
         bzero(eventArry,sizeof(struct epoll_event) * MAXEVENTS);
         num = epoll_wait(epollfd,eventArry,MAXEVENTS,-1);
-        printf("num = %d\n",num);
+        //printf("num = %d\n",num);
         for(index = 0;index < num; index++) {
             Connection * context = (Connection*)eventArry[index].data.ptr;
             int aFd   = context->fd;
             int subfd = -1;
-            printf("afd %d sfd %d  evets %d\n",aFd,sfd,eventArry[index].events);
             if(aFd == sfd) {
                while((subfd = accept(sfd,(struct sockaddr*)&remoteaddr,&len)) > 0){
 
