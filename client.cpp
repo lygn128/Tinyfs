@@ -42,29 +42,5 @@ int main() {
 
     sleep(20);
 
-//    uint64  xx = 0x01020304;
-//    Byte *oo = (Byte*)&xx;
-//    printf(" %c  %c  %c %c %c %c %c %c\n",oo[0],oo[1],oo[2],oo[3],oo[4],oo[5],oo[6],oo[7]);
-//
-//    LittleEndian::PutUint64(oo,xx);
-//    printf(" %c  %c  %c %c %c %c %c %c\n",oo[0],oo[1],oo[2],oo[3],oo[4],oo[5],oo[6],oo[7]);
-//    xx = LittleEndian::Uint64(oo);
-//    printf(" %c  %c  %c %c %c %c %c %c\n",oo[0],oo[1],oo[2],oo[3],oo[4],oo[5],oo[6],oo[7]);
-  //  printf("connect result = %d err: %s\n",result,strerror(errno));
 
-
-
-  //  sleep(10);
-
-//     int  a = 0x01020304;
-//
-//
-//    void * bb = malloc(4);
-//
-//    int * ooo = (int*)bb;
-//    int cc = *(int *)bb;
-//
-//    LittleEndian::PutUint32((Byte*)bb,a);
-//    char * xxx = (char*)bb;
-//    printf("%0x\n",*ooo);
 }
