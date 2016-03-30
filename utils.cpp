@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string.h>
 
 
 bool isDirExist(char * path) {
@@ -24,6 +25,9 @@ void printError(int errnum,int line ) {
 
 
 char *dirCat(char* dir,char * dir2) {
+    if(strncmp(dir2,"/",1) == 0 ){
+        return dir2;
+    }
     sds * dis  = new sds(dir);
     sds * dis2 = new sds(dir2);
     dis2->sdtrim("./");

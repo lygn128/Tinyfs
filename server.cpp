@@ -30,7 +30,8 @@
 #include <sys/ucontext.h>
 #endif
 
-
+extern int epollfd;
+extern int sfd;
 static NimbleStore *globalStore = NULL;
 static server      *globalSrv      = NULL;
 
@@ -65,14 +66,15 @@ int spawnnewprocess(char*path,char * argv[]) {
     temppid = fork();
     switch (temppid) {
         case 0:{
-            int xx = open("./x.txt",O_CREAT|O_RDWR|O_APPEND,0644);
-//            dup2(STDIN_FILENO,xx);
-            dup2(xx,STDOUT_FILENO);
-            dup2(xx,STDIN_FILENO);
-            dup2(xx,STDERR_FILENO);
-            printf("sdfasdfdsa %s %s",path,argv[0]);
+            setsid();
 
-            int xxx = execve(path,argv,NULL);
+
+            printf("befor exec %s %s",path,argv[0]);
+
+
+            char *env[] = {(char*)sfd,(char*)epollfd,NULL};
+
+            int xxx = execve(path,argv,env);
 
             break;
         }
@@ -89,10 +91,8 @@ int spawnnewprocess(char*path,char * argv[]) {
 }
 
 void handleSignal(int signum,siginfo_t * info,void * ptr) {
-    printf("catch a signal");
     switch (signum) {
         case SIGUSR1: {
-            printf("receive sig siguser1");
             spawnnewprocess(globalSrv->ctx.path, globalSrv->ctx.argv);
             break;
         }
@@ -105,7 +105,7 @@ void handleSignal(int signum,siginfo_t * info,void * ptr) {
 
 
 void server::HandleSignal(int signum,siginfo_t * info,void * ptr) {
-    printf("catch a signal");
+    printf("catch a signal and pid = %d\n",getpid());
     switch (signum) {
         case SIGUSR1: {
             printf("receive sig siguser1");
@@ -180,49 +180,62 @@ int server::Start() {
     listenAndserve();
 }
 
-
+int closeProc(){
+    return 0;
+}
 int server::listenAndserve() {
-    int sfd = socket(AF_INET,SOCK_STREAM,0);
-    int flag = fcntl(sfd,F_GETFL,0);
-    int result = fcntl(sfd,F_SETFL,flag | O_NONBLOCK);
-    if(sfd < 0) {
-        printf("create socket error");
-        exit(-1);
+    //return 0;
+    if(sfd == 0) {
+        sfd = socket(AF_INET,SOCK_STREAM,0);
+        int flag = fcntl(sfd,F_GETFL,0);
+        int result = fcntl(sfd,F_SETFL,flag | O_NONBLOCK);
+        if(sfd < 0) {
+            printf("create socket error");
+            exit(-1);
+            //closeProc();
+        }
+        struct sockaddr_in addr;
+        bzero(&addr,sizeof(addr));
+        addr.sin_family      = AF_INET;
+        addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        addr.sin_port        = htons(10001);
+        printf("port is %d",addr.sin_port);
+
+
+        int on;
+        on = 1;
+        setsockopt(sfd,SOL_SOCKET,SO_REUSEADDR,&on, sizeof(on));
+
+        int bid = bind(sfd,(struct sockaddr*)&addr,sizeof(struct sockaddr));
+        if(bid < 0) {
+
+            printf("bind err\n");
+            printError(errno,__LINE__);
+            exit(-1);
+            //closeProc();
+        }
+
+        int lister = listen(sfd,10);
+        if(lister < 0){
+            printError(errno,__LINE__);
+            exit(-1);
+            //closeProc();
+        }else {
+            printf("listen sucess\n");
+        }
+
     }
 
-    struct sockaddr_in addr;
-    bzero(&addr,sizeof(addr));
-    addr.sin_family      = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port        = htons(10001);
-    printf("port is %d",addr.sin_port);
-
-
-    int on;
-    on = 1;
-    setsockopt(sfd,SOL_SOCKET,SO_REUSEADDR,&on, sizeof(on));
-
-    int bid = bind(sfd,(struct sockaddr*)&addr,sizeof(struct sockaddr));
-    if(bid < 0) {
-
-        printf("bind err\n");
-        printError(errno,__LINE__);
-        exit(-1);
-    }
-
-    int lister = listen(sfd,10);
-    if(lister < 0){
-        printError(errno,__LINE__);
-        exit(-1);
-    }
-
-    int epollfd = epoll_create1(0);
-    printf("epofd = %d\n",epollfd);
-    Connection * sfdConnect = new Connection(sfd,NULL);
-    int add = EventProcess(epollfd,sfd,EPOLL_CTL_ADD,EPOLLET|EPOLLIN|EPOLLOUT,sfdConnect);
-    if(add < 0) {
-        printError(errno,__LINE__);
-        exit(-1);
+    if(epollfd == 0) {
+        epollfd = epoll_create1(0);
+        printf("epofd = %d\n",epollfd);
+        Connection * sfdConnect = new Connection(sfd,NULL);
+        int add = EventProcess(epollfd,sfd,EPOLL_CTL_ADD,EPOLLET|EPOLLIN|EPOLLOUT,sfdConnect);
+        if(add < 0) {
+            printError(errno,__LINE__);
+            exit(-1);
+            //closeProc();
+        }
     }
 
     int subfd = 0;
@@ -233,7 +246,7 @@ int server::listenAndserve() {
     while(true) {
         bzero(eventArry,sizeof(struct epoll_event) * MAXEVENTS);
         num = epoll_wait(epollfd,eventArry,MAXEVENTS,-1);
-        //printf("num = %d\n",num);
+        printf("wait success num = %d\n",num);
         for(index = 0;index < num; index++) {
             Connection * context = (Connection*)eventArry[index].data.ptr;
             int aFd   = context->fd;

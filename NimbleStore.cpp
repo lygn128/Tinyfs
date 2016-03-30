@@ -24,10 +24,10 @@ NimbleStore::NimbleStore(char *path) {
     for(int i = 0;i < CHUNKNUM;i++){
         char * tempPAth = (char*)malloc(100);
         sprintf(tempPAth,"%s/%d",path,i);
-        printf("%s\n",tempPAth);
+       // printf("%s\n",tempPAth);
         int fd = open(tempPAth,O_CREAT|O_RDWR|O_APPEND,0666);
         fdArry[i] = fd;
-        printf("fd is %d \n",fdArry[i]);
+       // printf("fd is %d \n",fdArry[i]);
     }
 }
 

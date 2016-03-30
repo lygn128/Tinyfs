@@ -11,10 +11,25 @@ using namespace std;
 
 static server *srv;
 
+
+
+int epollfd = 0;
+int sfd     = 0;
+
 config* loadconfig(char *path);
 
 int main(int argc,char * argv[]) {
+    int pid = getpid();
+    char buff[100];
+    sprintf(buff,"/home/lhg/Tinyfs/%d.txt",pid);
+    int xx = open(buff,O_CREAT|O_RDWR|O_APPEND,0644);
+    printf("xx = %d\n",xx);
+    dup2(xx,STDIN_FILENO);
+    dup2(xx,STDOUT_FILENO);
+    dup2(xx,STDERR_FILENO);
     char * configdir;
+    char ** xxx = __environ;
+    printf("enve %s   dssd%s\n",xxx[0],xxx[1]);
     configdir = NULL;
     if(argc < 1 ){
         printf("need the config\n");
