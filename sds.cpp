@@ -28,6 +28,33 @@ sds::sds() {
 
 }
 
+
+sds *sds::sdcat(sds *src) {
+    if(free < src->len) {
+        char * xx  =  (char*)realloc(buff,len + src->len + 1);
+        if(xx == NULL)
+            return  NULL;
+        buff =xx;
+    }
+    printf("buff %s %d",src->buff,src->len);
+    memcpy(buff + len,src->buff,src->len + 1);
+    len  = len + src->len;
+    free = 0;
+    return this;
+}
+
+
+sds* sds::sdsAddprefix(char *str) {
+    if(strlen(str) > free) {
+        buff = (char*)realloc((void*)buff,len + strlen(str));
+    }
+    len += strlen(str);
+    memmove(buff + strlen(str),buff,len);
+    memcpy(buff,str,strlen(str));
+    return this;
+}
+
+
 sds sds::sdtrim(const char *cset) {
     char * sp = buff,*start  = buff;
     char * end = buff + len;
@@ -40,6 +67,9 @@ sds sds::sdtrim(const char *cset) {
     this->len = len;
     return *this;
 }
+
+
+
 
 
 //    sds sdstrim(sds s, const char *cset) {
@@ -99,7 +129,7 @@ sds::sds(const char *str,const  int initLen) {
 
 
 sds::sds(const char *str) {
-    int initLen = strlen(str);
+    int initLen = strlen(str) + 1;
     len = initLen;
     free = 0;
     this->buff = (char *)malloc(initLen);

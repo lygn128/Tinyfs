@@ -11,5 +11,6 @@
 bool isDirExist(char * path);
 
 void printError(int errnum,int line );
+char *dirCat(char* dir,char * dir2);
 
 #endif //TFNODE_UTILS_H

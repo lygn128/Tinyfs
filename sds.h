@@ -20,6 +20,8 @@ public:
     static sds ** splitsds(char * string,int srclen,char *sep,int seplen,int * num);
     void display();
     sds sdtrim(const char *cset);
+    sds * sdcat(sds *src);
+    sds * sdsAddprefix(char * str);
     short sdstos();
 
 

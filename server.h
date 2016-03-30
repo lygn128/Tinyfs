@@ -5,6 +5,7 @@
 #ifndef TFNODE_SERVER_H
 #define TFNODE_SERVER_H
 
+#include <signal.h>
 #include "config.h"
 #include "sds.h"
 #include "NimbleStore.h"
@@ -15,6 +16,13 @@ typedef enum state {
     recovery,
     disable
 }serverstate;
+
+
+typedef struct serverContext {
+    int pid;
+    char * path;
+    char ** argv;
+}Context;
 
 class server {
     sds role;
@@ -30,12 +38,18 @@ class server {
     sds dataDir;
     sds logDir;
     NimbleStore * store;
+    int   epollpid;
+public:
+    Context ctx;
 private:
     int listenAndserve();
     int handleConnect(Connection * connection);
 public:
     int Start();
     server();
+//    int spawnnewprocess(char*path,char * argv[]);
+    void HandleSignal(int signum,siginfo_t * info,void * ptr);
+    void signProcess();
 
 //private:
     int loadConfig(config * config1);

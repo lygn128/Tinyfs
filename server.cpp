@@ -18,7 +18,7 @@
 #include <execinfo.h>
 #include "utils.h"
 #include "Packet.h"
-#include "signal.h"
+#include <signal.h>
 
 #ifndef __USE_GNU
 #define __USE_GNU
@@ -32,6 +32,7 @@
 
 
 static NimbleStore *globalStore = NULL;
+static server      *globalSrv      = NULL;
 
 
 int readHandler(Connection * connection) {
@@ -58,8 +59,65 @@ int readHandler(Connection * connection) {
 
 }
 
-void HandleSignal(int signum,siginfo_t * info,void * ptr) {
+
+int spawnnewprocess(char*path,char * argv[]) {
+    int temppid;
+    temppid = fork();
+    switch (temppid) {
+        case 0:{
+            int xx = open("./x.txt",O_CREAT|O_RDWR|O_APPEND,0644);
+//            dup2(STDIN_FILENO,xx);
+            dup2(xx,STDOUT_FILENO);
+            dup2(xx,STDIN_FILENO);
+            dup2(xx,STDERR_FILENO);
+            printf("sdfasdfdsa %s %s",path,argv[0]);
+
+            int xxx = execve(path,argv,NULL);
+
+            break;
+        }
+        case 1:{
+            //int xx = execve (path,argv,NULL);
+
+            break;
+        }
+        default:{
+            break;
+        }
+
+    }
+}
+
+void handleSignal(int signum,siginfo_t * info,void * ptr) {
     printf("catch a signal");
+    switch (signum) {
+        case SIGUSR1: {
+            printf("receive sig siguser1");
+            spawnnewprocess(globalSrv->ctx.path, globalSrv->ctx.argv);
+            break;
+        }
+        default: {
+            printf("reveive signal  %d\n", signum);
+            break;
+        }
+    }
+}
+
+
+void server::HandleSignal(int signum,siginfo_t * info,void * ptr) {
+    printf("catch a signal");
+    switch (signum) {
+        case SIGUSR1: {
+            printf("receive sig siguser1");
+            spawnnewprocess(ctx.path, ctx.argv);
+            break;
+        }
+        default: {
+            printf("reveive signal  %d\n", signum);
+            break;
+        }
+    }
+}
 //    static int iTime;
 //    if (iTime++ >= 1){ /* 容错处理：如果访问 ucontext_t 结构体时产生错误会进入该分支 */
 //        printf("ReEnter %s is not allowed!\n", __FUNCTION__);
@@ -88,18 +146,25 @@ void HandleSignal(int signum,siginfo_t * info,void * ptr) {
 
 
 
-    abort();
-}
 
-void signProcess() {
+
+ //   abort();
+//}
+
+void server::signProcess() {
     struct sigaction act;
     int sig = SIGSEGV;
     sigemptyset(&act.sa_mask);
-    act.sa_sigaction = HandleSignal;
+    sigaddset(&act.sa_mask,SIGUSR1);
     act.sa_flags = SA_SIGINFO;
-    if(sigaction(sig,&act,NULL) < 0) {
-        perror("sigaction:");
-    }
+    act.sa_sigaction = handleSignal;
+
+//    if(sigaction(sig,&act,&act) < 0) {
+//        perror("sigaction:");
+//    }
+    sigaction(SIGUSR1,&act,NULL);
+    sigaction(SIGPIPE,&act,NULL);
+    sigaction(SIGSEGV,&act,NULL);
 }
 
 int server::handleConnect(Connection * connection) {
@@ -108,15 +173,10 @@ int server::handleConnect(Connection * connection) {
     delete(connection);
 }
 int server::Start() {
-    //signProcess();
-    store = new NimbleStore(dataDir.buff);
+    globalSrv = this;
+    signProcess();
+    store     = new NimbleStore(dataDir.buff);
     globalStore = store;
-//    char buff[64 * 1024];
-//    for(int j = 0;j < 200;j++){
-//        for(int i = 0;i< CHUNKNUM;i++) {
-//            store->Write(i,buff,64 * 1024);
-//        }
-//    }
     listenAndserve();
 }
 

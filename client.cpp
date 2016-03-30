@@ -13,6 +13,7 @@
 #include "Global.h"
 #include "LittleEndian.h"
 #include <new>
+#include "utils.h"
 
 
 int main() {
@@ -21,6 +22,7 @@ int main() {
     int buffsize = 64 *1024 * 1024;
     int result = connection->TFconnect(addr, 10001);
     for(int i = 0;i < 1000;i++){
+        //connection->fd;
         sleep(1);
         Packet *xx = (Packet*)0;
         int n =  (Byte*)&(xx->dataArry) - (Byte*)xx + buffsize;

@@ -3,6 +3,9 @@
 #include "server.h"
 #include <cstdio>
 #include <cstdlib>
+#include <unistd.h>
+#include <string.h>
+#include "utils.h"
 
 using namespace std;
 
@@ -17,8 +20,20 @@ int main(int argc,char * argv[]) {
         printf("need the config\n");
         exit(-1);
     }
+    //char * path = (new sds(get_current_dir_name()))->sdcat(new sds(argv[0]));
+    char * path  = dirCat(get_current_dir_name(),argv[0]);
+    char * par   = dirCat(get_current_dir_name(),argv[1]);
+    printf(" %s  sdfdasf  %s\n",path,par);
     configdir = argv[1];
     srv = new server();
+    Context ctx;
+    ctx.pid  = getpid();
+    ctx.path = path;
+
+    argv[1] = par;
+    memcpy(argv[1],par,strlen(par) + 1);
+    ctx.argv = argv;
+    srv->ctx = ctx;
     config * config1 = loadconfig(configdir);
     srv->loadConfig(config1);
     srv->Start();
