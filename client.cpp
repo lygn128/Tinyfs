@@ -19,11 +19,11 @@
 int main() {
     Connection * connection = new Connection();
     char * addr =  "127.0.0.1";
-    int buffsize = 64 *1024 * 1024;
+    int buffsize = 64  * 1024;
     int result = connection->TFconnect(addr, 10001);
     for(int i = 0;i < 1000;i++){
         //connection->fd;
-        sleep(1);
+        sleep(2);
         Packet *xx = (Packet*)0;
         int n =  (Byte*)&(xx->dataArry) - (Byte*)xx + buffsize;
         printf("n %d   index %d \n",n,i);

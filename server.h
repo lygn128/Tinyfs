@@ -40,6 +40,8 @@ class server {
     NimbleStore * store;
     int   epollpid;
 public:
+    bool  accepton;
+public:
     Context ctx;
 private:
     int listenAndserve();
@@ -48,8 +50,10 @@ public:
     int Start();
     server();
 //    int spawnnewprocess(char*path,char * argv[]);
-    void HandleSignal(int signum,siginfo_t * info,void * ptr);
+   // void HandleSignal(int signum,siginfo_t * info,void * ptr);
     void signProcess();
+    void Close();
+    void stopAccept();
 
 //private:
     int loadConfig(config * config1);

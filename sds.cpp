@@ -130,7 +130,7 @@ sds::sds(const char *str,const  int initLen) {
 
 sds::sds(const char *str) {
     int initLen = strlen(str) + 1;
-    len = initLen;
+    len = initLen - 1;
     free = 0;
     this->buff = (char *)malloc(initLen);
     memcpy(this->buff,str,initLen);
