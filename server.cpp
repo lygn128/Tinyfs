@@ -249,6 +249,7 @@ int server::listenAndserve() {
             //closeProc();
         }
     }
+    printf("------------------\n");
     logger->Loginfo("sfd =",sfd,"epollfd =",epollfd);
 
 

@@ -6,6 +6,7 @@
 #define TFNODE_LOGGER_H
 
 
+#include <stdio.h>
 #include "../sds.h"
 
 enum {
@@ -27,9 +28,9 @@ enum {
 //"[UPDAT]",
 
 class Logger {
-    int loggLevel;
-    char* logPath;
-    int fd[6];
+    int   loggLevel;
+    char*   logPath;
+    FILE*   file[6];
 public:
     Logger(char * logpath);
 //    Logger()      delete;

@@ -46,7 +46,7 @@ sds* getBuff(char * format,...) {
         para   = va_arg( argp, char *);                 /*    取出当前的参数，类型为char *. */
         parInt = va_arg(argp,int);
 
-        if(para != NULL && strncmp("\"",para,1) == 0){
+        if(para != NULL) {
             sd->sdcat((char*)para);
             argno++;
             continue;
@@ -57,6 +57,7 @@ sds* getBuff(char * format,...) {
             sd->sdcat(buff);
             argno++;
             continue;
+            break;
 
         }else {
             break;
@@ -75,7 +76,7 @@ void Logger::Loginfo(char *str, ...) {
 //    char *para;                     /* 存放取出的字符串参数 */
 //
 //    /* argp指向传入的第一个可选参数，    msg是最后一个确定的参数 */
-//    va_start( argp, str);
+    va_start( argp, str);
 //
 //    sds *sd = new sds(str);
 //    while (1)
@@ -88,9 +89,9 @@ void Logger::Loginfo(char *str, ...) {
 //        argno++;
 //    }
 //    va_end( argp );
-    va_start(argp, str);
+//   va_start(argp, str);
     sds * xx = getBuff(str,argp);
-    write(fd[temlevel],xx->buff,xx->getLen());
+    fwrite(xx->buff,1,xx->getLen(),file[temlevel]);
     delete xx;
 }
 
