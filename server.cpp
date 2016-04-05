@@ -18,6 +18,7 @@
 #include <execinfo.h>
 #include "utils.h"
 #include "Packet.h"
+#include "commons/Logger.h"
 #include <signal.h>
 #include <sys/wait.h>
 
@@ -38,6 +39,7 @@ extern int loopSwitch[2];
 static NimbleStore *globalStore = NULL;
 static server      *globalSrv      = NULL;
 int sta;
+extern Logger *logger;
 
 
 void server::Close() {
@@ -60,7 +62,8 @@ int readHandler(Connection * connection) {
     }
     Packet *xx = connection->curretnPacket;
     int x = connection->curretnPacket->readPacket(connection);
-    printf("has read %d\n",x);
+    //printf("has read %d\n",x);
+    logger->Loginfo("has read",x);
     if(x == 0)
         return 0;
     switch (connection->curretnPacket->opcode) {
@@ -183,7 +186,7 @@ int closeProc(){
 int server::listenAndserve() {
     char * sfdstr     = getenv("sfd");
     char * epollfdstr = getenv("epollfd");
-    printf("sfd = %s epollfd = %s\n",sfdstr,epollfdstr);
+
     //return 0;
     if(sfdstr){
         sfd = atoi(sfdstr);
@@ -246,6 +249,7 @@ int server::listenAndserve() {
             //closeProc();
         }
     }
+    logger->Loginfo("sfd =",sfd,"epollfd =",epollfd);
 
 
     {
@@ -342,13 +346,15 @@ server::server() {
 }
 
 int server::loadConfig(config * config1) {
-    role = sds(config1->getValueForString("role").c_str());
-    ip   = sds(config1->getValueForString("ip").c_str());
-    port = config1->getValueInt("port");
-    zk   = sds(config1->getValueForString("zk").c_str());
-    id   = config1->getValueInt("id");
+    role    = sds(config1->getValueForString("role").c_str());
+    ip      = sds(config1->getValueForString("ip").c_str());
+    port    = config1->getValueInt("port");
+    zk      = sds(config1->getValueForString("zk").c_str());
+    id      = config1->getValueInt("id");
     dataDir =  sds(config1->getValueForString("datadir").c_str());
     logDir  =  sds(config1->getValueForString("logdir").c_str());
+    logger  =  new Logger(logDir.buff);
+    logger->setLogLevel(0);
     display();
 }
 

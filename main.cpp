@@ -6,13 +6,14 @@
 #include <unistd.h>
 #include <string.h>
 #include "utils.h"
+#include "commons/Logger.h"
 
 using namespace std;
 
 server *srv = NULL;
 
 
-
+Logger * logger = NULL;
 int epollfd = 0;
 int sfd     = 0;
 int loopSwitch = 0;
@@ -23,38 +24,28 @@ int mywrit(char * string1) {
     write(fd,string1,strlen(string1) + 1);
 }
 
-int main(int argc,char * argv[]) {
+void mydump() {
     int pid = getpid();
-    printf("pid = %d\n",getpid());
     char buff[100];
-    //fopen("/home/lygn128/ClionProjects/tfnode/%d.txt",)
     sprintf(buff,"/home/lygn128/ClionProjects/tfnode/%d.txt",pid);
-    fd  = open(buff,O_CREAT|O_RDWR|O_APPEND,0644);
-
-    char * string1 = "adfasdfds\n";
-    write(fd,string1,strlen(string1) + 1);      //
-    printf("xx = %d\n",fd);
-    dup2(fd,STDIN_FILENO);
+    fd  = open(buff,O_CREAT|O_RDWR|O_APPEND,0644);//    dup2(fd,STDIN_FILENO);
     dup2(fd,STDOUT_FILENO);
     dup2(fd,STDERR_FILENO);
 
     setvbuf(stdin,NULL,_IONBF,0);
     setvbuf(stdout,NULL,_IONBF,0);
     setvbuf(stderr,NULL,_IONBF,0);
-    write(fd,string1,strlen(string1) + 1);     //
+
+}
+int main(int argc,char * argv[]) {
+
+    printf("pid = %d\n",getpid());
     char * configdir;
-    //char ** xxx = __environ;
-    //printf("enve %s   dssd%s\n",xxx[0],xxx[1]);
-    write(fd,string1,strlen(string1) + 1);     //
     configdir = NULL;
     if(argc < 1 ){
         printf("need the config\n");
-
         exit(-1);
     }
-
-   // mywrit("after loadConfig1");
-    //char * path = (new sds(get_current_dir_name()))->sdcat(new sds(argv[0]));
     char * path  = dirCat(get_current_dir_name(),argv[0]);
     char * par   = dirCat(get_current_dir_name(),argv[1]);
     printf("path =  %s  par or argv[1] %s\n",path,par);

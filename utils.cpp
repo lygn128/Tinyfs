@@ -12,10 +12,15 @@
 #include <string.h>
 
 
+
+int fileOpen(char*fileName) {
+    int fd = open(fileName,O_CREAT|O_APPEND|O_RDWR,0644);
+    return fd;
+}
 bool isDirExist(char * path) {
-    int fd = open(path,O_RDONLY);
-    close(fd);
-    return fd > 0;
+    struct stat stat1;
+    int result = stat(path,&stat1);
+    return result == 0;
 }
 
 

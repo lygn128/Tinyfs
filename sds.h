@@ -21,7 +21,9 @@ public:
     void display();
     sds sdtrim(const char *cset);
     sds * sdcat(sds *src);
+    sds * sdcat(char * str);
     sds * sdsAddprefix(char * str);
+    int getLen();
     short sdstos();
 
 

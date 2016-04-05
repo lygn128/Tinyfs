@@ -7,9 +7,10 @@
 #include <stdlib.h>
 #include "Global.h"
 #include "LittleEndian.h"
+#include "commons/Logger.h"
 #include <cstdio>
 #include <errno.h>
-
+extern Logger *logger;
 
 Packet::Packet() {
     parCount = 0;
