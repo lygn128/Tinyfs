@@ -25,6 +25,7 @@ public:
     uint8    magic;
     u_int8_t opcode;          //1 + 1  + 2 + 8 + 8 + 4 + 16
     uint16    chunkid;
+    time_t   timestamp;
     uint64   offset;
     uint64   size;
     int      parCount;

@@ -250,7 +250,7 @@ int server::listenAndserve() {
         }
     }
     printf("------------------\n");
-    logger->Loginfo("sfd =",sfd,"epollfd =",epollfd);
+    logger->Loginfo("sfd = %d sfd = %d",sfd,epollfd);
 
 
     {
@@ -284,10 +284,36 @@ int server::listenAndserve() {
         sigaddset(&act.sa_mask,SIGUSR1);
         sigaddset(&act.sa_mask,SIGUSR2);
         num = epoll_pwait(epollfd,eventArry,MAXEVENTS,-1,NULL);
-        printf("wait success num = %d  err  %d pid = %d\n",num,errno,getpid());
+        //printf("wait success num = %d  err  %d pid = %d\n",num,errno,getpid());
+        int xx = errno;
         if(num == -1) {
+            switch(xx) {
+                case EBADF:{
+                    break;
+                }
+                case EFAULT:{
+                    break;
+                }
+                case EINTR:{
+                    break;
+                }
+                case EINVAL:{
+                    break;
+                }
+            }
             continue;
         }
+
+//        EBADF  epfd is not a valid file descriptor.
+//
+//        EFAULT The memory area pointed to by events is not  accessible  with  write  permis‐
+//        sions.
+//
+//        EINTR  The  call  was  interrupted  by a signal handler before either (1) any of the
+//        requested events occurred or (2) the timeout expired; see signal(7).
+//
+//        EINVAL epfd is not an epoll file descriptor, or maxevents is less than or  equal  to
+//        zero.
         for(index = 0;index < num; index++) {
             Connection * context = (Connection*)eventArry[index].data.ptr;
             int aFd   = context->fd;

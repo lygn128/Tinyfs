@@ -31,6 +31,7 @@ void* Packet::Marshal() {
     byteNumTosend = num;
     Byte * temp = (Byte*)this;
     LittleEndian::PutUint16((Byte*)&chunkid, chunkid);
+    LittleEndian::PutUint64((Byte*)&timestamp , timestamp);
     LittleEndian::PutUint64((Byte*)&offset , offset);
     LittleEndian::PutUint64((Byte*)&size, size);
     LittleEndian::PutUint32((Byte*)&parCount, parCount);
@@ -51,7 +52,8 @@ int Packet::readHeader(Connection *connection) {
     if(n == 0) {
         return 0;
     }
-    chunkid = LittleEndian::Uint16((Byte*)&chunkid);
+    chunkid    = LittleEndian::Uint16((Byte*)&chunkid);
+    timestamp  = LittleEndian::Uint64((Byte*)&timestamp);
     offset  = LittleEndian::Uint64((Byte*)&offset);
     size    = LittleEndian::Uint64((Byte*)&size);
     parCount= LittleEndian::Uint32((Byte*)&parCount);
