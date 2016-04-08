@@ -27,7 +27,6 @@ Logger::Logger(char *logpathx) {
     }
 }
 
-
 void Logger::setLogLevel(int level) {
     this->loggLevel = level;
 }
